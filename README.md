@@ -1,6 +1,6 @@
 # Parse on Buddy Cloud Code/Web Hosting Command Line Tool
 
-[![Build Status](https://api.travis-ci.org/BuddyPlatform/parse-on-buddy-cli.svg)](https://travis-ci.com/BuddyPlatform/parse-on-buddy) [![NPM](https://img.shields.io/npm/v/parse-on-buddy.svg)](https://www.npmjs.com/package/parse-on-buddy)
+[![Build Status](https://api.travis-ci.org/BuddyPlatform/parse-on-buddy-cli.svg)](https://travis-ci.org/BuddyPlatform/parse-on-buddy-cli) [![NPM](https://img.shields.io/npm/v/parse-on-buddy.svg)](https://www.npmjs.com/package/parse-on-buddy)
 
 This tool allows you to upload your Parse cloud code and static files for hosting to the Parse on Buddy service. It also allows you to manage different versions of cloud code/static files.
 
@@ -129,7 +129,7 @@ $ parse-on-buddy -v
 Fetching current version...
 2
 
-$ curl -X POST --header x-parse-application-id:... https://parse.buddy.com/parse/functions/something
+$ curl -X POST --header x-parse-application-id:<app-id> https://parse.buddy.com/parse/functions/something
 { "result": "different" }
 ```
 
