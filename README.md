@@ -15,7 +15,7 @@ The tool depends on the following environment variables. Please set them appropr
 
 ## Installation
 
-Open a command shell, and type `npm install -g parse-on-buddy-cli`.
+Open a command shell, and type `npm install -g parse-on-buddy`.
 
 ## Overview
 
