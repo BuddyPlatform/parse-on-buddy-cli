@@ -149,7 +149,3 @@ $ curl -X POST --header x-parse-application-id:<app-id> https://parse.buddy.com/
 Q. Why do I need a public directory, even if I'm not using web hosting?
 
 A. Due to legacy reasons, an empty `public` directory is necessary.
-
-Q. On MacOS I am getting errors after uploading my cloud code.
-
-A. MacOS creates invisible files named `.DS_Store` when folders are opened in the Finder. These files must be deleted from the directory structure.
