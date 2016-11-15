@@ -1,3 +1,11 @@
 language: node_js
 node_js:
+  - 4
+  - 5
   - 6
+  - 7
+before_script:
+  - npm install -g eslint jasmine
+script:
+  - npm run lint
+  - npm test
