@@ -100,7 +100,7 @@ function main() {
         return;
       }
 
-      if (response.body.versions.includes(options.createVersion)) {
+      if (_.includes(response.body.versions, options.createVersion)) {
         console.log('Error: version already exists.');
         return;
       }
@@ -122,7 +122,7 @@ function main() {
         return;
       }
 
-      if (!response.body.versions.includes(options.activateVersion)) {
+      if (!_.includes(response.body.versions, options.activateVersion)) {
         console.log('Error: version does not exist.');
         return;
       }
