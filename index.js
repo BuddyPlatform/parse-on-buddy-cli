@@ -105,7 +105,11 @@ function main() {
         return;
       }
 
-      cli.createVersion(config.appID, config.secret, options.createVersion);
+      cli.createVersion(config.appID, config.secret, options.createVersion, (error) => {
+        if (error) {
+          cli.bail(error);
+        }
+      });
     });
   } else if ('currentVersion' in options) {
     cli.getCurrentVersion(config.appID, config.secret, cli.printStatus(r => r.body));
