@@ -86,7 +86,7 @@ function main() {
   if ('version' in options) {
     console.log(`${module.exports.description} ${module.exports.version}`);
   } else if ('listVersions' in options) {
-    cli.listVersions(config.appID, config.secret, cli.printStatus(r => r.body.versions.sort((a, b) => a - b).join(' ')));
+    cli.listVersions(config.appID, config.secret).asCallback(cli.printStatus(r => r.body.versions.sort((a, b) => a - b).join(' ')), {spread: true});
   } else if ('createVersion' in options) {
     if (options.createVersion === null) {
       console.log('Error: version required.');
@@ -94,7 +94,7 @@ function main() {
       return;
     }
 
-    cli.listVersions(config.appID, config.secret, (error, response) => {
+    cli.listVersions(config.appID, config.secret).asCallback((error, response) => {
       if (error) {
         cli.bail(error);
         return;
@@ -105,14 +105,14 @@ function main() {
         return;
       }
 
-      cli.createVersion(config.appID, config.secret, options.createVersion, (error) => {
+      cli.createVersion(config.appID, config.secret, options.createVersion).asCallback((error) => {
         if (error) {
           cli.bail(error);
         }
       });
-    });
+    }, {spread: true});
   } else if ('currentVersion' in options) {
-    cli.getCurrentVersion(config.appID, config.secret, cli.printStatus(r => r.body));
+    cli.getCurrentVersion(config.appID, config.secret).asCallback(cli.printStatus(r => r.body));
   } else if ('activateVersion' in options) {
     if (options.activateVersion === null) {
       console.log('Error: version required.');
@@ -120,7 +120,7 @@ function main() {
       return;
     }
 
-    cli.listVersions(config.appID, config.secret, (error, response) => {
+    cli.listVersions(config.appID, config.secret).asCallback((error, response) => {
       if (error) {
         cli.bail(error);
         return;
@@ -132,8 +132,8 @@ function main() {
       }
 
       // eslint-disable-next-line no-unused-vars
-      cli.setVersion(config.appID, config.secret, options.activateVersion, cli.printStatus());
-    });
+      cli.setVersion(config.appID, config.secret, options.activateVersion).asCallback(cli.printStatus());
+    }, {spread: true});
   } else {
     console.log('No valid instruction given; exiting.');
   }
