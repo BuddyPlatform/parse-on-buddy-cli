@@ -101,17 +101,21 @@ function main() {
     }
 
     cli.listVersions(config.appID, config.secret).spread((response) => {
-
       if (!_.includes(response.body.versions, options.activateVersion)) {
         return Promise.reject('Error: version does not exist.');
       }
 
       // eslint-disable-next-line no-unused-vars
-      return cli.setVersion(config.appID, config.secret, options.activateVersion).then(cli.printStatus());
+      return cli.setVersion(config.appID, config.secret, options.activateVersion)
+        .then(cli.printStatus());
     });
   } else {
     return Promise.reject('No valid instruction given; exiting.');
   }
+
+  return Promise.reject('Developer error: option statement fall-through. ' +
+                        'A promise should be returned from main() before ' +
+                        'this point.');
 }
 
 main().catch((error) => {
