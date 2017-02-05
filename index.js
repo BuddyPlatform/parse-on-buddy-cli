@@ -5,6 +5,7 @@ require('pkginfo')(module); // for module.*
 const fs = require('fs');
 const commandLineArgs = require('command-line-args');
 const _ = require('lodash');
+const Promise = require('bluebird');
 
 const cli = require('./lib/cli');
 
@@ -45,24 +46,20 @@ function main() {
 
   if ('help' in options) {
     console.log(commandLine.getUsage());
-    return;
+    return Promise.accept();
   }
 
   if (_.keys(options).length === 0) {
-    console.log(commandLine.getUsage());
-    process.exitCode = 1;
-    return;
+    return Promise.reject(commandLine.getUsage());
   }
 
   if ('generate' in options) {
     cli.generateTemplate();
-    return;
+    return Promise.accept();
   }
 
   if (!('version' in options) && (!(('BUDDY_PARSE_APP_ID' in process.env) && ('BUDDY_PARSE_MASTER_KEY' in process.env)))) {
-    console.log('Required environment variables: BUDDY_PARSE_APP_ID, BUDDY_PARSE_MASTER_KEY');
-    process.exitCode = 1;
-    return;
+    return Promise.reject('Required environment variables: BUDDY_PARSE_APP_ID, BUDDY_PARSE_MASTER_KEY');
   }
 
   const requirements = [
@@ -72,10 +69,7 @@ function main() {
   ];
 
   if (_.includes(requirements, false) && ('createVersion' in options)) {
-    console.log('Required directories: cloud, public');
-    console.log('The cloud directory must contain a main.js cloud code file.');
-    process.exitCode = 1;
-    return;
+    return Promise.reject('Required directories: cloud, public\nThe cloud directory must contain a main.js cloud code file.');
   }
 
   const config = {
@@ -86,53 +80,47 @@ function main() {
   if ('version' in options) {
     console.log(`${module.exports.description} ${module.exports.version}`);
   } else if ('listVersions' in options) {
-    cli.listVersions(config.appID, config.secret, cli.printStatus(r => r.body.versions.sort((a, b) => a - b).join(' ')));
+    return cli.listVersions(config.appID, config.secret).spread(cli.printStatus(r => r.body.versions.sort((a, b) => a - b).join(' ')));
   } else if ('createVersion' in options) {
     if (options.createVersion === null) {
-      console.log('Error: version required.');
-      process.exitCode = 1;
-      return;
+      return Promise.reject('Error: version required.');
     }
 
-    cli.listVersions(config.appID, config.secret, (error, response) => {
-      if (error) {
-        cli.bail(error);
-        return;
-      }
-
+    return cli.listVersions(config.appID, config.secret).spread((response) => {
       if (_.includes(response.body.versions, options.createVersion)) {
-        console.log('Error: version already exists.');
-        return;
+        return Promise.reject('Error: version already exists.');
       }
 
-      cli.createVersion(config.appID, config.secret, options.createVersion);
+      return cli.createVersion(config.appID, config.secret, options.createVersion);
     });
   } else if ('currentVersion' in options) {
-    cli.getCurrentVersion(config.appID, config.secret, cli.printStatus(r => r.body));
+    return cli.getCurrentVersion(config.appID, config.secret).spread(cli.printStatus(r => r.body));
   } else if ('activateVersion' in options) {
     if (options.activateVersion === null) {
-      console.log('Error: version required.');
-      process.exitCode = 1;
-      return;
+      return Promise.reject('Error: version required.');
     }
 
-    cli.listVersions(config.appID, config.secret, (error, response) => {
-      if (error) {
-        cli.bail(error);
-        return;
-      }
-
+    cli.listVersions(config.appID, config.secret).spread((response) => {
       if (!_.includes(response.body.versions, options.activateVersion)) {
-        console.log('Error: version does not exist.');
-        return;
+        return Promise.reject('Error: version does not exist.');
       }
 
       // eslint-disable-next-line no-unused-vars
-      cli.setVersion(config.appID, config.secret, options.activateVersion, cli.printStatus());
+      return cli.setVersion(config.appID, config.secret, options.activateVersion)
+        .then(cli.printStatus());
     });
   } else {
-    console.log('No valid instruction given; exiting.');
+    return Promise.reject('No valid instruction given; exiting.');
   }
+
+  return Promise.reject('Developer error: option statement fall-through. ' +
+                        'A promise should be returned from main() before ' +
+                        'this point.');
 }
 
-main();
+main().catch((error) => {
+  if (error !== null) {
+    console.error(error);
+  }
+  process.exitCode = 1;
+});
