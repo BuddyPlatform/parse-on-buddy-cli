@@ -17,7 +17,7 @@ Promise.promisifyAll(request, { multiArgs: true });
 
 function minimumVersionCheck() {
   return request.getAsync('https://parseonbuddy.blob.core.windows.net/cli/minimum.txt').spread((response, body) => {
-    if (response.statusCode != 200) {
+    if (response.statusCode !== 200) {
       return Promise.reject(`Error: unable to fetch minimum CLI version (HTTP ${response.statusCode}). Contact Buddy Support.`);
     }
 
@@ -28,7 +28,8 @@ function minimumVersionCheck() {
 
     const newEnough = semver.gte(module.exports.version, minVersion);
     if (!newEnough) {
-      return Promise.reject(`Error: CLI version ${module.exports.version} is too old. Please upgrade: https://www.npmjs.com/package/parse-on-buddy`);
+      return Promise.reject(`Error: CLI version ${module.exports.version} is too old. ` +
+        'Please upgrade: https://www.npmjs.com/package/parse-on-buddy');
     }
 
     return Promise.resolve();
@@ -38,7 +39,8 @@ function minimumVersionCheck() {
 function updateCheck() {
   return latestVersion('parse-on-buddy').then((version) => {
     if (semver.gt(version, module.exports.version)) {
-      console.warn(`Update: a newer parse-on-buddy version is available (${version} > ${module.exports.version}): https://www.npmjs.com/package/parse-on-buddy`);
+      console.warn(`Update: a newer parse-on-buddy version is available (${version} > ${module.exports.version}): ` +
+        'https://www.npmjs.com/package/parse-on-buddy');
     }
 
     return Promise.resolve();
@@ -162,9 +164,9 @@ function main() {
         return Promise.reject('Error: version does not exist.');
       }
 
-      return cli.setVersion(config.appID, config.secret, options.activateVersion).spread((response, body) => {
-        if (response.statusCode !== 204) {
-          return Promise.reject(`Error: cannot set current version (HTTP ${response.statusCode}).`);
+      return cli.setVersion(config.appID, config.secret, options.activateVersion).spread((setResponse) => {
+        if (setResponse.statusCode !== 204) {
+          return Promise.reject(`Error: cannot set current version (HTTP ${setResponse.statusCode}).`);
         }
 
         console.log('Done.');
@@ -172,8 +174,6 @@ function main() {
         return Promise.resolve();
       });
     });
-  } else {
-    return Promise.reject('No valid instruction given; exiting.');
   }
 
   return Promise.reject('Developer error: option statement fall-through. ' +

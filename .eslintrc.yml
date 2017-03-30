@@ -9,5 +9,6 @@ plugins:
   - jasmine
 rules:
   no-console: off
+  max-len: [2, 132]
 env:
   jasmine: true
