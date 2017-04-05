@@ -155,8 +155,12 @@ function main() {
       return Promise.reject('Error: version required.');
     }
 
-    return cli.listVersions(config.appID, config.secret).spread((response) => {
-      if (_.includes(response.body.versions, options.createVersion)) {
+    return cli.listVersions(config.appID, config.secret).spread((response, body) => {
+      if (response.statusCode !== 200) {
+        return Promise.reject(`Error: cannot list versions (HTTP ${response.statusCode}).`);
+      }
+
+      if (_.includes(body.versions, options.createVersion)) {
         return Promise.reject('Error: version already exists.');
       }
 
