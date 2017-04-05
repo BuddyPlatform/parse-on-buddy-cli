@@ -1,6 +1,6 @@
 {
   "name": "parse-on-buddy",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Parse on Buddy CLI",
   "preferGlobal": true,
   "bin": {
