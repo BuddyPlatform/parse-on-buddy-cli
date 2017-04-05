@@ -102,7 +102,12 @@ function main() {
     return Promise.resolve();
   }
 
-  if (!('version' in options) && (!(('BUDDY_PARSE_APP_ID' in process.env) && ('BUDDY_PARSE_MASTER_KEY' in process.env)))) {
+  if ('version' in options) {
+    console.log(`${module.exports.description} ${module.exports.version}`);
+    return Promise.resolve();
+  }
+
+  if (['BUDDY_PARSE_APP_ID', 'BUDDY_PARSE_MASTER_KEY'].map(e => e in process.env).indexOf(false) >= 0) {
     return Promise.reject('Required environment variables: BUDDY_PARSE_APP_ID, BUDDY_PARSE_MASTER_KEY');
   }
 
@@ -135,10 +140,7 @@ function main() {
     secret: process.env.BUDDY_PARSE_MASTER_KEY,
   };
 
-  if ('version' in options) {
-    console.log(`${module.exports.description} ${module.exports.version}`);
-    return Promise.resolve();
-  } else if ('listVersions' in options) {
+  if ('listVersions' in options) {
     return cli.listVersions(config.appID, config.secret).spread((response, body) => {
       if (response.statusCode !== 200) {
         return Promise.reject(`Error: cannot list versions (HTTP ${response.statusCode}).`);
