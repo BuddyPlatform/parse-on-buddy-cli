@@ -1,4 +1,4 @@
-# Parse on Buddy Cloud Code/Web Hosting Command Line Tool
+# Parse on Buddy CLI
 
 [![Build Status](https://api.travis-ci.org/BuddyPlatform/parse-on-buddy-cli.svg)](https://travis-ci.org/BuddyPlatform/parse-on-buddy-cli) [![NPM](https://img.shields.io/npm/v/parse-on-buddy.svg)](https://www.npmjs.com/package/parse-on-buddy)
 
@@ -21,12 +21,14 @@ Open a command shell, and type `npm install -g parse-on-buddy`.
 
 ### Directory Structure
 
-Cloud code needs to live in a single .js file named `main.js`, and it needs to be in a directory named `cloud`. Static files need to be in a sibling directory named `public`. Here is the required directory structure:
+Cloud code requires at least one JavaScript file, `main.js`. Other files can be included along with directory hierarchies such as `node_modules`. Static files need to be in a sibling directory named `public`. Here is the required directory structure:
 
 ```
 .
 +-- cloud
 |   +-- main.js
+|   +-- foo.js
+|   +-- node_modules/...
 +-- public
 |   +-- sample.txt
 |   +-- etc.
@@ -39,10 +41,6 @@ You invoke the tool from the root of the directory structure, that is the parent
 ### Versions
 
 A combined set of cloud code and static files is called a version. Using the tool you upload each version to Parse on Buddy. The latest version becomes active. You can also activate older versions using the tool.
-
-### JavaScript Dependencies
-
-As with the old Parse.com service, you can only upload a single .js file, named `main.js`. Any dependencies need to be manually copy/pasted into that .js file. We are working to lift that limitation.
 
 ### Web Hosting
 
