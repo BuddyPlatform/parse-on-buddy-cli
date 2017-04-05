@@ -6,8 +6,52 @@ const fs = require('fs');
 const commandLineArgs = require('command-line-args');
 const _ = require('lodash');
 const Promise = require('bluebird');
+const latestVersion = require('latest-version');
+const request = require('request');
+const semver = require('semver');
 
 const cli = require('./lib/cli');
+
+cli.setUserAgent(`parse-on-buddy/${module.exports.version}/${process.version}/${process.platform}`);
+
+// Promisify libraries
+Promise.promisifyAll(request, { multiArgs: true });
+
+function minimumVersionCheck() {
+  return request.getAsync('https://parseonbuddy.blob.core.windows.net/cli/minimum.txt').spread((response, body) => {
+    if (response.statusCode !== 200) {
+      return Promise.reject(`Error: unable to fetch minimum CLI version (HTTP ${response.statusCode}). Contact Buddy Support.`);
+    }
+
+    const minVersion = semver.parse(body.trim());
+    if (!minVersion) {
+      return Promise.reject(`Error: cannot parse minimum version "${body.trim()}". Contact Buddy Support.`);
+    }
+
+    const newEnough = semver.gte(module.exports.version, minVersion);
+    if (!newEnough) {
+      return Promise.reject(`Error: CLI version ${module.exports.version} is too old. ` +
+        'Please upgrade: https://www.npmjs.com/package/parse-on-buddy');
+    }
+
+    return Promise.resolve();
+  });
+}
+
+function updateCheck() {
+  return latestVersion('parse-on-buddy').then((version) => {
+    if (semver.gt(version, module.exports.version)) {
+      console.warn(`Update: a newer parse-on-buddy version is available (${version} > ${module.exports.version}): ` +
+        'https://www.npmjs.com/package/parse-on-buddy');
+    }
+
+    return Promise.resolve();
+  }).catch(() => {
+    console.warn('Warning: unable to check the latest parse-on-buddy version.');
+
+    return Promise.resolve(); // It's not the end of the world.
+  });
+}
 
 function main() {
   const commandLine = commandLineArgs([{
@@ -46,7 +90,7 @@ function main() {
 
   if ('help' in options) {
     console.log(commandLine.getUsage());
-    return Promise.accept();
+    return Promise.resolve();
   }
 
   if (_.keys(options).length === 0) {
@@ -55,7 +99,7 @@ function main() {
 
   if ('generate' in options) {
     cli.generateTemplate();
-    return Promise.accept();
+    return Promise.resolve();
   }
 
   if (!('version' in options) && (!(('BUDDY_PARSE_APP_ID' in process.env) && ('BUDDY_PARSE_MASTER_KEY' in process.env)))) {
@@ -79,8 +123,17 @@ function main() {
 
   if ('version' in options) {
     console.log(`${module.exports.description} ${module.exports.version}`);
+    return Promise.resolve();
   } else if ('listVersions' in options) {
-    return cli.listVersions(config.appID, config.secret).spread(cli.printStatus(r => r.body.versions.sort((a, b) => a - b).join(' ')));
+    return cli.listVersions(config.appID, config.secret).spread((response, body) => {
+      if (response.statusCode !== 200) {
+        return Promise.reject(`Error: cannot list versions (HTTP ${response.statusCode}).`);
+      }
+
+      console.log(body.versions.sort((a, b) => a - b).join(' '));
+
+      return Promise.resolve();
+    });
   } else if ('createVersion' in options) {
     if (options.createVersion === null) {
       return Promise.reject('Error: version required.');
@@ -94,23 +147,35 @@ function main() {
       return cli.createVersion(config.appID, config.secret, options.createVersion);
     });
   } else if ('currentVersion' in options) {
-    return cli.getCurrentVersion(config.appID, config.secret).spread(cli.printStatus(r => r.body));
+    return cli.getCurrentVersion(config.appID, config.secret).spread((response, body) => {
+      if (response.statusCode !== 200) {
+        return Promise.reject(`Error: cannot get current version (HTTP ${response.statusCode}).`);
+      }
+
+      console.log(body);
+
+      return Promise.resolve();
+    });
   } else if ('activateVersion' in options) {
     if (options.activateVersion === null) {
       return Promise.reject('Error: version required.');
     }
 
-    cli.listVersions(config.appID, config.secret).spread((response) => {
+    return cli.listVersions(config.appID, config.secret).spread((response) => {
       if (!_.includes(response.body.versions, options.activateVersion)) {
         return Promise.reject('Error: version does not exist.');
       }
 
-      // eslint-disable-next-line no-unused-vars
-      return cli.setVersion(config.appID, config.secret, options.activateVersion)
-        .then(cli.printStatus());
+      return cli.setVersion(config.appID, config.secret, options.activateVersion).spread((setResponse) => {
+        if (setResponse.statusCode !== 204) {
+          return Promise.reject(`Error: cannot set current version (HTTP ${setResponse.statusCode}).`);
+        }
+
+        console.log('Done.');
+
+        return Promise.resolve();
+      });
     });
-  } else {
-    return Promise.reject('No valid instruction given; exiting.');
   }
 
   return Promise.reject('Developer error: option statement fall-through. ' +
@@ -118,7 +183,7 @@ function main() {
                         'this point.');
 }
 
-main().catch((error) => {
+minimumVersionCheck().then(() => updateCheck()).then(() => main()).catch((error) => {
   if (error !== null) {
     console.error(error);
   }
