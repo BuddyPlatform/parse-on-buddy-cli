@@ -12,6 +12,8 @@ const semver = require('semver');
 
 const cli = require('./lib/cli');
 
+cli.setUserAgent(`parse-on-buddy/${module.exports.version}/${process.version}/${process.platform}`);
+
 // Promisify libraries
 Promise.promisifyAll(request, { multiArgs: true });
 
