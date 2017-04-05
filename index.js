@@ -106,6 +106,20 @@ function main() {
     return Promise.reject('Required environment variables: BUDDY_PARSE_APP_ID, BUDDY_PARSE_MASTER_KEY');
   }
 
+  const invalidCreds = [];
+
+  if (cli.isNotValidAppID(process.env.BUDDY_PARSE_APP_ID)) {
+    invalidCreds.push(`Invalid BUDDY_PARSE_APP_ID: "${process.env.BUDDY_PARSE_APP_ID}". Valid characters: lowercase hex and "-".`);
+  }
+
+  if (cli.isNotValidMasterKey(process.env.BUDDY_PARSE_MASTER_KEY)) {
+    invalidCreds.push(`Invalid BUDDY_PARSE_MASTER_KEY: "${process.env.BUDDY_PARSE_MASTER_KEY}". Must be alphanumeric only.`);
+  }
+
+  if (invalidCreds.length > 0) {
+    return Promise.reject(`${invalidCreds.join('\n')}`);
+  }
+
   const requirements = [
     fs.existsSync('cloud') && fs.statSync('cloud').isDirectory(),
     fs.existsSync('public') && fs.statSync('public').isDirectory(),
