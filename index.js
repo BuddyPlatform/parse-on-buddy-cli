@@ -18,7 +18,7 @@ cli.setUserAgent(`parse-on-buddy/${module.exports.version}/${process.version}/${
 Promise.promisifyAll(request, { multiArgs: true });
 
 function minimumVersionCheck() {
-  return request.getAsync('https://parseonbuddy.blob.core.windows.net/cli/minimum.txt').spread((response, body) => {
+  return request.getAsync('https://cdn.parse.buddy.com/cli/minimum.txt').spread((response, body) => {
     if (response.statusCode !== 200) {
       return Promise.reject(`Error: unable to fetch minimum CLI version (HTTP ${response.statusCode}). Contact Buddy Support.`);
     }
